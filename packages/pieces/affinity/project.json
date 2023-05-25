@@ -1,0 +1,36 @@
+{
+  "name": "pieces-affinity",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/pieces/affinity/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/js:tsc",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/packages/pieces/affinity",
+        "tsConfig": "packages/pieces/affinity/tsconfig.lib.json",
+        "packageJson": "packages/pieces/affinity/package.json",
+        "main": "packages/pieces/affinity/src/index.ts",
+        "assets": [
+          "packages/pieces/affinity/*.md"
+        ],
+        "buildableProjectDepsInPackageJsonType": "dependencies"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": [
+        "{options.outputFile}"
+      ],
+      "options": {
+        "lintFilePatterns": [
+          "packages/pieces/affinity/**/*.ts"
+        ]
+      }
+    }
+  },
+  "tags": []
+}
