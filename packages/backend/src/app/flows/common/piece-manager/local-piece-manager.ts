@@ -14,7 +14,7 @@ export class LocalPieceManager extends PieceManager {
 
         const { projectPath, pieces } = params
         const basePath = resolve(__dirname.split(`${sep}dist`)[0])
-        const baseLinkPath = join(basePath, 'dist', 'packages', 'pieces')
+        const baseLinkPath = join(basePath, 'dist', 'packages', 'pieces', 'community')
 
         const frameworkPackages = {
             '@activepieces/pieces-common': `link:${baseLinkPath}/common`,

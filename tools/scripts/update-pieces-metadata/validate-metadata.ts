@@ -1,4 +1,4 @@
-import { PieceMetadata } from '../../../packages/pieces/framework/src'
+import { PieceMetadata } from '../../../packages/pieces/community/framework/src'
 import * as semver from 'semver'
 
 const validateSupportedRelease = (minRelease: string | undefined, maxRelease: string | undefined) => {

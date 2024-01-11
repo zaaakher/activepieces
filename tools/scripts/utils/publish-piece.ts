@@ -1,28 +1,42 @@
 import assert from 'node:assert'
 import { argv } from 'node:process'
 import { exec } from './exec'
-import { readPackageJson, readProjectJson } from './files'
+import { folderExists, readPackageJson, readProjectJson } from './files'
 
 export const publishPiece = async (name: string): Promise<void> => {
   assert(name, '[publishPiece] parameter "name" is required')
 
-  const path = `packages/pieces/${name}`;
-  const { version } = await readPackageJson(path)
-  const { name: nxProjectName } = await readProjectJson(path)
+  const types = ['community', 'custom']
+  let found = false;
+  for (const type of types) {
+    const path = `packages/pieces/${type}/${name}`;
+    const exists = await folderExists(path)
+    if (!exists) {
+      continue
+    }
+    found = true;
+    const { version } = await readPackageJson(path)
+    const { name: nxProjectName } = await readProjectJson(path)
 
-  await exec(`npx nx build ${nxProjectName}`)
+    await exec(`npx nx build ${nxProjectName}`)
 
-  const nxPublishProjectCommand = `
-    node tools/scripts/publish.mjs \
-      ${nxProjectName} \
-      ${version} \
-      latest
-  `
+    const nxPublishProjectCommand = `
+      node tools/scripts/publish.mjs \
+        ${nxProjectName} \
+        ${version} \
+        latest
+    `
 
 
-  await exec(nxPublishProjectCommand)
+    await exec(nxPublishProjectCommand)
 
-  console.info(`[publishPiece] success, name=${name}, version=${version}`)
+    console.info(`[publishPiece] success, name=${name}, version=${version}`)
+  }
+
+  if (!found) {
+    throw new Error(`[publishPiece] piece not found, name=${name}`)
+  }
+
 }
 
 const main = async (): Promise<void> => {

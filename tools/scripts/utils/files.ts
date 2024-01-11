@@ -1,4 +1,5 @@
 import { readFile, writeFile } from 'node:fs/promises'
+import { access, constants } from 'node:fs/promises'
 
 export type PackageJson = {
   name: string
@@ -20,6 +21,16 @@ export type ProjectJson = {
             lintFilePatterns: string[]
         }
     }
+  }
+}
+
+
+export const folderExists = async (path: string): Promise<boolean> => {
+  try {
+    await access(path, constants.F_OK)
+    return true
+  } catch (error) {
+    return false
   }
 }
 

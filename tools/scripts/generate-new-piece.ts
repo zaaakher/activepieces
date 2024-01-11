@@ -13,14 +13,14 @@ const validatePieceName = async (pieceName: string) => {
   assert(pieceNamePattern.test(pieceName), 'piece name should contain alphanumeric characters and hyphens only')
 
   const pieces = await getAvailablePieceNames()
-  const nameAlreadyExists = pieces.some(p => p === pieceName)
+  const nameAlreadyExists = pieces.some(p => p.pieceName === pieceName)
   assert(!nameAlreadyExists, 'piece name already exists')
 }
 
 const nxGenerateNodeLibrary = async (pieceName: string) => {
   const nxGenerateCommand = `
     npx nx generate @nx/node:library ${pieceName} \
-      --directory=pieces \
+      --directory=pieces/community \
       --importPath=@activepieces/piece-${pieceName} \
       --publishable \
       --buildable \
@@ -35,7 +35,7 @@ const nxGenerateNodeLibrary = async (pieceName: string) => {
 }
 
 const removeUnusedFiles = async (pieceName: string) => {
-  await rm(`packages/pieces/${pieceName}/src/lib/pieces-${pieceName}.ts`)
+  await rm(`packages/pieces/community/${pieceName}/src/lib/pieces-${pieceName}.ts`)
 }
 
 const generateIndexTsFile = async (pieceName: string) => {
@@ -64,7 +64,7 @@ export const ${pieceNameCamelCase} = createPiece({
 });
 `
 
-  await writeFile(`packages/pieces/${pieceName}/src/index.ts`, indexTemplate)
+  await writeFile(`packages/pieces/community/${pieceName}/src/index.ts`, indexTemplate)
 }
 
 function capitalizeFirstLetter(str: string): string {
@@ -73,7 +73,7 @@ function capitalizeFirstLetter(str: string): string {
 
 
 const updateProjectJsonConfig = async (pieceName: string) => {
-  const projectJson = await readProjectJson(`packages/pieces/${pieceName}`)
+  const projectJson = await readProjectJson(`packages/pieces/community/${pieceName}`)
 
   assert(projectJson.targets?.build?.options, '[updateProjectJsonConfig] targets.build.options is required');
 
@@ -83,20 +83,20 @@ const updateProjectJsonConfig = async (pieceName: string) => {
   const lintFilePatterns = projectJson.targets.lint.options.lintFilePatterns
   const patternIndex = lintFilePatterns.findIndex((item => item.endsWith('package.json')))
   if (patternIndex !== -1) lintFilePatterns?.splice(patternIndex, 1)
-  await writeProjectJson(`packages/pieces/${pieceName}`, projectJson)
+  await writeProjectJson(`packages/pieces/community/${pieceName}`, projectJson)
 }
 
 
 const updatePackageJsonConfig = async (pieceName: string) => {
-  const projectJson = await readPackageJson(`packages/pieces/${pieceName}`)
+  const projectJson = await readPackageJson(`packages/pieces/community/${pieceName}`)
   projectJson.keywords = ['activepieces'];
-  await writeProjectJson(`packages/pieces/${pieceName}`, projectJson)
+  await writeProjectJson(`packages/pieces/community/${pieceName}`, projectJson)
 }
 
 const updateEslintFile = async (pieceName: string) => {
-    const eslintFile = await readPackageEslint(`packages/pieces/${pieceName}`)
+    const eslintFile = await readPackageEslint(`packages/pieces/community/${pieceName}`)
     eslintFile.overrides.splice(eslintFile.overrides.findIndex((rule: any) => rule.files[0] == '*.json'), 1)
-    await writePackageEslint(`packages/pieces/${pieceName}`, eslintFile)
+    await writePackageEslint(`packages/pieces/community/${pieceName}`, eslintFile)
 }
 
 const setupGeneratedLibrary = async (pieceName: string) => {

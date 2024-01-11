@@ -1,4 +1,4 @@
-import { readdir } from 'node:fs/promises'
+import { readdir, access } from 'node:fs/promises'
 import { resolve, join } from 'node:path'
 import { cwd } from 'node:process'
 import { Piece, PieceMetadata } from '@activepieces/pieces-framework'
@@ -11,17 +11,52 @@ import importFresh from 'import-fresh'
 import { PieceMetadataModel, PieceMetadataModelSummary } from '../piece-metadata-entity'
 
 const loadPiecesMetadata = async (): Promise<PieceMetadata[]> => {
-    const ignoredPackages = ['framework', 'apps', 'dist', 'common']
     const piecesPath = resolve(cwd(), 'dist', 'packages', 'pieces')
+
+    const communityPieces = await loadPiecesFromPath(
+        resolve(piecesPath, 'community'),
+    )
+    const customPieces = await loadPiecesFromPath(resolve(piecesPath, 'custom'))
+    const piecesMetadata = [...communityPieces, ...customPieces]
+    return piecesMetadata.sort((a, b) =>
+        a.displayName.toUpperCase().localeCompare(b.displayName.toUpperCase()),
+    )
+}
+
+async function folderExists(folderPath: string): Promise<boolean> {
+    try {
+        await access(folderPath)
+        return true
+    }
+    catch (error) {
+        return false
+    }
+}
+
+async function loadPiecesFromPath(
+    piecesPath: string,
+): Promise<PieceMetadata[]> {
+    const fexists = await folderExists(piecesPath)
+    if (!fexists) {
+        return []
+    }
+    const ignoredPackages = ['framework', 'apps', 'dist', 'common', 'README.md']
+
     const piecePackages = await readdir(piecesPath)
-    const filteredPiecePackages = piecePackages.filter(d => !ignoredPackages.includes(d))
+    const filteredPiecePackages = piecePackages.filter(
+        (d) => !ignoredPackages.includes(d),
+    )
 
     const piecesMetadata: PieceMetadata[] = []
 
     for (const piecePackage of filteredPiecePackages) {
         try {
-            const packageJson = importFresh<Record<string, string>>(join(piecesPath, piecePackage, 'package.json'))
-            const module = importFresh<Record<string, unknown>>(join(piecesPath, piecePackage, 'src', 'index'))
+            const packageJson = importFresh<Record<string, string>>(
+                join(piecesPath, piecePackage, 'package.json'),
+            )
+            const module = importFresh<Record<string, unknown>>(
+                join(piecesPath, piecePackage, 'src', 'index'),
+            )
 
             const { name: pieceName, version: pieceVersion } = packageJson
             const piece = extractPieceFromModule<Piece>({
@@ -40,10 +75,8 @@ const loadPiecesMetadata = async (): Promise<PieceMetadata[]> => {
             captureException(ex)
         }
     }
-
-    return piecesMetadata.sort((a, b) => a.displayName.toUpperCase().localeCompare(b.displayName.toUpperCase()))
+    return piecesMetadata
 }
-
 export const FilePieceMetadataService = (): PieceMetadataService => {
     return {
         async list({ projectId }): Promise<PieceMetadataModelSummary[]> {
@@ -57,7 +90,7 @@ export const FilePieceMetadataService = (): PieceMetadataService => {
 
         async getOrThrow({ name, version, projectId }): Promise<PieceMetadataModel> {
             const piecesMetadata = await loadPiecesMetadata()
-            const pieceMetadata = piecesMetadata.find(p => p.name === name)
+            const pieceMetadata = piecesMetadata.find((p) => p.name === name)
 
             if (isNil(pieceMetadata)) {
                 throw new ActivepiecesError({

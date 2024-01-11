@@ -47,7 +47,7 @@ export class IsolateSandbox extends AbstractSandbox {
                 '--dir=/usr/bin/',
                 `--dir=/etc/=${etcDir}`,
                 `--dir=${basePath}=/${basePath}:maybe`,
-                `--dir=${IsolateSandbox.cacheBindPath}=${this._cachePath}`,
+                `--dir=${IsolateSandbox.cacheBindPath}=${path.resolve(this._cachePath!)}`,
                 '--share-net',
                 `--box-id=${this.boxId}`,
                 '--processes',

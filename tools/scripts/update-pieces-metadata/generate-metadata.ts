@@ -1,7 +1,7 @@
 import { getAvailablePieceNames } from '../utils/get-available-piece-names';
 import { readPackageJson } from '../utils/files';
 import { validateMetadata } from './validate-metadata';
-import { PieceMetadata } from '../../../packages/pieces/framework/src';
+import { PieceMetadata } from '../../../packages/pieces/community/framework/src';
 type Piece = {
   name: string;
   displayName: string;
@@ -24,8 +24,8 @@ export const generateMetadata = async (): Promise<PieceMetadata[]> => {
 
   const piecePackageNames = await getAvailablePieceNames();
 
-  for (const packageName of piecePackageNames) {
-    const packagePath = `packages/pieces/${packageName}`;
+  for (const pkg of piecePackageNames) {
+    const packagePath = `packages/pieces/${pkg.type}/${pkg.pieceName}`;
 
     const packageJson = await readPackageJson(packagePath);
 
